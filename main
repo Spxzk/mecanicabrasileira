@@ -118,7 +118,7 @@ end)
 -- Variável de controle para o toggle
 local entregaAtiva = false
 
--- Lista de destinos
+-- Lista de nomes de destino
 local destinoNomes = {
     "Borracharia",
     "Comet Auto Peças",
@@ -135,27 +135,27 @@ local destinoNomes = {
     "Valley Drag Race"
 }
 
--- Busca os DropAreas
-local function getDropAreas()
-    local dropAreas = {}
+-- Pega os Details de cada destino
+local function getDetailsTargets()
+    local targets = {}
     local destinos = workspace:WaitForChild("TransportJobWorkings"):WaitForChild("Destinations")
     for _, nome in ipairs(destinoNomes) do
         local destino = destinos:FindFirstChild(nome)
-        if destino and destino:FindFirstChild("DropArea") then
-            table.insert(dropAreas, destino.DropArea)
+        if destino and destino:FindFirstChild("Details") then
+            table.insert(targets, destino.Details)
         end
     end
-    return dropAreas
+    return targets
 end
 
--- Teleporta itens até sumirem
-local function loopTeleportar(item, dropAreas)
+-- Teleporta um item por todos os Details até ele sumir
+local function loopTeleportar(item, details)
     task.spawn(function()
         while entregaAtiva and item and item:IsDescendantOf(workspace) do
-            for _, drop in ipairs(dropAreas) do
+            for _, detalhe in ipairs(details) do
                 if item and item:IsA("BasePart") then
-                    item.CFrame = drop.CFrame
-                    task.wait(2)
+                    item.CFrame = detalhe.CFrame
+                    task.wait(0.3)
                 else
                     break
                 end
@@ -164,15 +164,15 @@ local function loopTeleportar(item, dropAreas)
     end)
 end
 
--- Detecta itens novos
+-- Detecta novos itens para entrega
 local function iniciarMonitoramento()
     local folder = workspace:WaitForChild("GrabStuff")
-    local dropAreas = getDropAreas()
+    local details = getDetailsTargets()
 
     -- Itens existentes
     for _, item in ipairs(folder:GetChildren()) do
         if entregaAtiva and item:IsA("BasePart") then
-            loopTeleportar(item, dropAreas)
+            loopTeleportar(item, details)
         end
     end
 
@@ -180,15 +180,14 @@ local function iniciarMonitoramento()
     folder.ChildAdded:Connect(function(child)
         task.wait(0.1)
         if entregaAtiva and child:IsA("BasePart") then
-            loopTeleportar(child, dropAreas)
+            loopTeleportar(child, details)
         end
     end)
 end
 
--- UI Controls
-
+-- Toggle de entrega na Fluent UI
 Tabs.Main:AddToggle("EntregaToggle", {
-    Title = "Auto Entrega",
+    Title = "Entrega",
     Default = false,
     Callback = function(state)
         entregaAtiva = state
