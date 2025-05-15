@@ -115,7 +115,12 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+--[[
+  ... (seu código original antes do loop entrega)
+--]]
+
 local entregaAtiva = false
+local entregaDelay = 0.05 -- delay padrão para o loop de entrega (ajustável na UI)
 
 local destinos = {
     CFrame.new(-3285.76001, 161.737457, 1614.28943, 0, 0, -1, 0, 1, 0, 1, 0, 0),
@@ -133,23 +138,30 @@ local destinos = {
     CFrame.new(-4037.16089, 148.239456, -1003.13953, 0, 0, -1, 0, 1, 0, 1, 0, 0),
 }
 
+-- Loop paralelo e rápido para entrega
 task.spawn(function()
     while true do
         if entregaAtiva then
-            for _, caixa in ipairs(workspace.GrabStuff:GetChildren()) do
-                if caixa:IsA("MeshPart") then
-                    for _, destinoCF in ipairs(destinos) do
-                        if not caixa or not caixa.Parent then break end
-                        caixa.CFrame = destinoCF
-                        task.wait(0.3)
+            local caixas = workspace:FindFirstChild("GrabStuff")
+            if caixas then
+                for _, caixa in ipairs(caixas:GetChildren()) do
+                    if caixa:IsA("MeshPart") then
+                        task.spawn(function()
+                            for _, destinoCF in ipairs(destinos) do
+                                if not caixa or not caixa.Parent then break end
+                                caixa.CFrame = destinoCF
+                                task.wait(entregaDelay)
+                            end
+                        end)
                     end
                 end
             end
         end
-        task.wait(1)
+        task.wait(0.1) -- espera para não travar o jogo
     end
 end)
 
+-- Toggle para ativar/desativar entrega
 Tabs.Main:AddToggle("EntregaToggle", {
     Title = "Entrega",
     Default = false,
@@ -157,6 +169,23 @@ Tabs.Main:AddToggle("EntregaToggle", {
         entregaAtiva = state
     end
 })
+
+-- Slider para controlar o delay da entrega (velocidade)
+Tabs.Main:AddSlider("DelayEntrega", {
+    Title = "Delay da Entrega",
+    Description = "Ajusta a velocidade da entrega (menor = mais rápido)",
+    Default = 0.05,
+    Min = 0.01,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(value)
+        entregaDelay = value
+    end
+})
+
+--[[
+  ... (seu código original depois)
+--]]
 
 -- Toggle de entrega na Fluent UI
 
