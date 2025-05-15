@@ -150,14 +150,14 @@ task.spawn(function()
                             for _, destinoCF in ipairs(destinos) do
                                 if not caixa or not caixa.Parent then break end
                                 caixa.CFrame = destinoCF
-                                task.wait(2)
+                                task.wait(entregaDelay)
                             end
                         end)
                     end
                 end
             end
         end
-        task.wait(0.1) -- espera para não travar o jogo
+        task.wait(1) -- espera para não travar o jogo
     end
 end)
 
