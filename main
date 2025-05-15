@@ -157,7 +157,7 @@ task.spawn(function()
                 end
             end
         end
-        task.wait(1) -- espera para não travar o jogo
+        task.wait(0.5) -- espera para não travar o jogo
     end
 end)
 
