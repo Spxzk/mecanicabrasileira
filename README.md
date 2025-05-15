@@ -1,0 +1,190 @@
+-- Carrega Fluent UI
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+-- Variáveis de controle
+local flySpeed = 50
+local flying = false
+local noclip = false
+local BV, BG, vehicle, primary
+local direction = Vector3.zero
+local vertical = 0
+
+-- Cria janela Fluent
+local Window = Fluent:CreateWindow({
+    Title = "Guest Exploit",
+    SubTitle = "by Guest",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(500, 400),
+    Acrylic = false,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "car" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
+}
+
+-- Detecção automática do veículo que o jogador está usando
+local function getPlayerVehicle()
+    for _, car in ipairs(workspace:WaitForChild("ActiveCars"):GetChildren()) do
+        if car:IsA("Model") then
+            for _, part in ipairs(car:GetDescendants()) do
+                if part:IsA("VehicleSeat") and part.Occupant == Character:FindFirstChildOfClass("Humanoid") then
+                    return car
+                end
+            end
+        end
+    end
+    return nil
+end
+
+-- Ativa ou desativa fly
+local function toggleFly(state)
+    if state then
+        vehicle = getPlayerVehicle()
+        if not vehicle then
+            warn("[FlyVehicle] Nenhum veículo encontrado.")
+            return
+        end
+
+        primary = vehicle.PrimaryPart or vehicle:FindFirstChildWhichIsA("BasePart")
+        if not primary then
+            warn("[FlyVehicle] PrimaryPart não encontrada.")
+            return
+        end
+
+        BV = Instance.new("BodyVelocity")
+        BV.MaxForce = Vector3.new(1, 1, 1) * math.huge
+        BV.Velocity = Vector3.zero
+        BV.P = 10000
+        BV.Parent = primary
+
+        BG = Instance.new("BodyGyro")
+        BG.MaxTorque = Vector3.new(1, 1, 1) * math.huge
+        BG.CFrame = primary.CFrame
+        BG.P = 10000
+        BG.Parent = primary
+
+        flying = true
+    else
+        if BV then BV:Destroy() end
+        if BG then BG:Destroy() end
+        flying = false
+    end
+end
+
+-- Inputs para movimento
+game:GetService("UserInputService").InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.W then direction = Vector3.new(0, 0, -1) end
+    if input.KeyCode == Enum.KeyCode.S then direction = Vector3.new(0, 0, 1) end
+    if input.KeyCode == Enum.KeyCode.A then direction = Vector3.new(-1, 0, 0) end
+    if input.KeyCode == Enum.KeyCode.D then direction = Vector3.new(1, 0, 0) end
+    if input.KeyCode == Enum.KeyCode.Space then vertical = 1 end
+    if input.KeyCode == Enum.KeyCode.LeftControl then vertical = -1 end
+end)
+
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.W or input.KeyCode == Enum.KeyCode.S or
+       input.KeyCode == Enum.KeyCode.A or input.KeyCode == Enum.KeyCode.D then
+        direction = Vector3.zero
+    end
+    if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.LeftControl then
+        vertical = 0
+    end
+end)
+
+-- Movimento do veículo e Noclip
+RunService.RenderStepped:Connect(function()
+    if flying and primary and BV and BG then
+        local camCF = workspace.CurrentCamera.CFrame
+        local move = camCF:VectorToWorldSpace(direction)
+        BV.Velocity = move * flySpeed + Vector3.new(0, vertical * flySpeed, 0)
+        BG.CFrame = CFrame.new(primary.Position, primary.Position + camCF.LookVector)
+
+        if noclip then
+            for _, part in ipairs(vehicle:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+-- UI Controls
+
+Tabs.Main:AddButton({
+    Title = "Teleportar para Garagem",
+    Description = "",
+    Callback = function()
+        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.CFrame = CFrame.new(-3497.89673, 168.741852, 823.869629, -1, 0, 0, 0, 1, 0, 0, 0, -1)
+        else
+            warn("HumanoidRootPart não encontrado.")
+        end
+    end
+})
+
+Tabs.Main:AddButton({
+    Title = "Teleportar para Npc Entregas",
+    Description = "",
+    Callback = function()
+        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.CFrame = CFrame.new(-25644.7402, 151.518524, -2109.33813, 0.00670209061, -0, -0.999977529, 0, 1, -0, 0.999977529, 0, 0.00670209061)
+        else
+            warn("HumanoidRootPart não encontrado.")
+        end
+    end
+})
+
+Tabs.Main:AddToggle("FlyToggle", {
+    Title = "FlyVehicle",
+    Default = false,
+    Callback = function(state)
+        toggleFly(state)
+    end
+})
+
+Tabs.Main:AddToggle("NoclipToggle", {
+    Title = "Noclip Vehicle",
+    Default = false,
+    Callback = function(state)
+        noclip = state
+    end
+})
+
+Tabs.Main:AddSlider("SpeedSlider", {
+    Title = "Fly Speed",
+    Description = "Velocidade de voo do veículo",
+    Default = 50,
+    Min = 10,
+    Max = 3000,
+    Rounding = 0,
+    Callback = function(value)
+        flySpeed = value
+    end
+})
+
+-- Gerenciadores adicionais
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("GuestExploit")
+SaveManager:SetFolder("GuestExploit/flyspeed")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+SaveManager:LoadAutoloadConfig()
