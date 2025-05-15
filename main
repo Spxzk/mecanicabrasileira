@@ -88,8 +88,6 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gpe)
     if input.KeyCode == Enum.KeyCode.S then direction = Vector3.new(0, 0, 1) end
     if input.KeyCode == Enum.KeyCode.A then direction = Vector3.new(-1, 0, 0) end
     if input.KeyCode == Enum.KeyCode.D then direction = Vector3.new(1, 0, 0) end
-    if input.KeyCode == Enum.KeyCode.Space then vertical = 1 end
-    if input.KeyCode == Enum.KeyCode.LeftControl then vertical = -1 end
 end)
 
 game:GetService("UserInputService").InputEnded:Connect(function(input)
