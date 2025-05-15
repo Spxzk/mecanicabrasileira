@@ -120,7 +120,7 @@ end)
 --]]
 
 local entregaAtiva = false
-local entregaDelay = 0.05 -- delay padrão para o loop de entrega (ajustável na UI)
+local entregaDelay = 2 -- delay padrão para o loop de entrega (ajustável na UI)
 
 local destinos = {
     CFrame.new(-3285.76001, 161.737457, 1614.28943, 0, 0, -1, 0, 1, 0, 1, 0, 0),
