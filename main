@@ -115,11 +115,9 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Variável de controle para o toggle
-local entregaAtiva = false
+local entregando = false
 
--- Lista de nomes de destino
-local destinoNomes = {
+local destinos = {
     "Borracharia",
     "Comet Auto Peças",
     "Concessionaria",
@@ -135,67 +133,55 @@ local destinoNomes = {
     "Valley Drag Race"
 }
 
--- Pega os Details de cada destino
-local function getDetailsTargets()
-    local targets = {}
-    local destinos = workspace:WaitForChild("TransportJobWorkings"):WaitForChild("Destinations")
-    for _, nome in ipairs(destinoNomes) do
-        local destino = destinos:FindFirstChild(nome)
-        if destino and destino:FindFirstChild("Details") then
-            table.insert(targets, destino.Details)
-        end
-    end
-    return targets
-end
-
--- Teleporta um item por todos os Details até ele sumir
-local function loopTeleportar(item, details)
+local function iniciarEntrega()
     task.spawn(function()
-        while entregaAtiva and item and item:IsDescendantOf(workspace) do
-            for _, detalhe in ipairs(details) do
-                if item and item:IsA("BasePart") then
-                    item.CFrame = detalhe.CFrame
-                    task.wait(0.3)
+        while entregando do
+            local caixa = workspace.GrabStuff:FindFirstChild("TranspBox")
+            if not caixa or not caixa:IsDescendantOf(workspace) then
+                break -- parou de existir
+            end
+
+            -- Garantir PrimaryPart
+            if not caixa.PrimaryPart then
+                local base = caixa:FindFirstChild("Base") or caixa:FindFirstChildWhichIsA("BasePart")
+                if base then
+                    caixa.PrimaryPart = base
                 else
+                    warn("TranspBox sem PrimaryPart")
                     break
                 end
             end
+
+            for _, nome in ipairs(destinos) do
+                local destino = workspace.TransportJobWorkings.Destinations:FindFirstChild(nome)
+                if destino and destino:FindFirstChild("Details") then
+                    caixa:SetPrimaryPartCFrame(destino.Details.CFrame)
+                    task.wait(0.3)
+                end
+
+                if not caixa:IsDescendantOf(workspace) then
+                    break -- sumiu
+                end
+            end
+
+            task.wait(0.1)
         end
     end)
 end
 
--- Detecta novos itens para entrega
-local function iniciarMonitoramento()
-    local folder = workspace:WaitForChild("GrabStuff")
-    local details = getDetailsTargets()
-
-    -- Itens existentes
-    for _, item in ipairs(folder:GetChildren()) do
-        if entregaAtiva and item:IsA("BasePart") then
-            loopTeleportar(item, details)
-        end
-    end
-
-    -- Novos itens
-    folder.ChildAdded:Connect(function(child)
-        task.wait(0.1)
-        if entregaAtiva and child:IsA("BasePart") then
-            loopTeleportar(child, details)
-        end
-    end)
-end
-
--- Toggle de entrega na Fluent UI
 Tabs.Main:AddToggle("EntregaToggle", {
     Title = "Entrega",
     Default = false,
     Callback = function(state)
-        entregaAtiva = state
-        if entregaAtiva then
-            iniciarMonitoramento()
+        entregando = state
+        if state then
+            iniciarEntrega()
         end
     end
 })
+
+
+-- Toggle de entrega na Fluent UI
 
 Tabs.Main:AddButton({
     Title = "Teleportar para Garagem",
