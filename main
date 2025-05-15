@@ -97,9 +97,6 @@ game:GetService("UserInputService").InputEnded:Connect(function(input)
        input.KeyCode == Enum.KeyCode.A or input.KeyCode == Enum.KeyCode.D then
         direction = Vector3.zero
     end
-    if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.LeftControl then
-        vertical = 0
-    end
 end)
 
 -- Movimento do veículo e Noclip
