@@ -115,7 +115,88 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- Variável de controle para o toggle
+local entregaAtiva = false
+
+-- Lista de destinos
+local destinoNomes = {
+    "Borracharia",
+    "Comet Auto Peças",
+    "Concessionaria",
+    "Construção Arcozaco",
+    "Construção Mecdustrial",
+    "Construção Mectropoly",
+    "Fabrica 1",
+    "Fabrica 2",
+    "Ferro Velho",
+    "Mercadão",
+    "Posto Mecdustrial",
+    "Posto Mectropoly",
+    "Valley Drag Race"
+}
+
+-- Busca os DropAreas
+local function getDropAreas()
+    local dropAreas = {}
+    local destinos = workspace:WaitForChild("TransportJobWorkings"):WaitForChild("Destinations")
+    for _, nome in ipairs(destinoNomes) do
+        local destino = destinos:FindFirstChild(nome)
+        if destino and destino:FindFirstChild("DropArea") then
+            table.insert(dropAreas, destino.DropArea)
+        end
+    end
+    return dropAreas
+end
+
+-- Teleporta itens até sumirem
+local function loopTeleportar(item, dropAreas)
+    task.spawn(function()
+        while entregaAtiva and item and item:IsDescendantOf(workspace) do
+            for _, drop in ipairs(dropAreas) do
+                if item and item:IsA("BasePart") then
+                    item.CFrame = drop.CFrame
+                    task.wait(0.3)
+                else
+                    break
+                end
+            end
+        end
+    end)
+end
+
+-- Detecta itens novos
+local function iniciarMonitoramento()
+    local folder = workspace:WaitForChild("GrabStuff")
+    local dropAreas = getDropAreas()
+
+    -- Itens existentes
+    for _, item in ipairs(folder:GetChildren()) do
+        if entregaAtiva and item:IsA("BasePart") then
+            loopTeleportar(item, dropAreas)
+        end
+    end
+
+    -- Novos itens
+    folder.ChildAdded:Connect(function(child)
+        task.wait(0.1)
+        if entregaAtiva and child:IsA("BasePart") then
+            loopTeleportar(child, dropAreas)
+        end
+    end)
+end
+
 -- UI Controls
+
+Tabs.Main:AddToggle("EntregaToggle", {
+    Title = "Auto Entrega",
+    Default = false,
+    Callback = function(state)
+        entregaAtiva = state
+        if entregaAtiva then
+            iniciarMonitoramento()
+        end
+    end
+})
 
 Tabs.Main:AddButton({
     Title = "Teleportar para Garagem",
