@@ -150,7 +150,7 @@ task.spawn(function()
                             for _, destinoCF in ipairs(destinos) do
                                 if not caixa or not caixa.Parent then break end
                                 caixa.CFrame = destinoCF
-                                task.wait(entregaDelay)
+                                task.wait(2)
                             end
                         end)
                     end
