@@ -150,12 +150,12 @@ end
 
 -- Teleporta itens até sumirem
 local function loopTeleportar(item, dropAreas)
-    task.spawn(function()
+    task.spawn(function(2)
         while entregaAtiva and item and item:IsDescendantOf(workspace) do
             for _, drop in ipairs(dropAreas) do
                 if item and item:IsA("BasePart") then
                     item.CFrame = drop.CFrame
-                    task.wait(0.3)
+                    task.wait(2)
                 else
                     break
                 end
