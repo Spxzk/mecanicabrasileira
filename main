@@ -115,71 +115,48 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-local entregando = false
+local entregaAtiva = false
 
 local destinos = {
-    "Borracharia",
-    "Comet Auto Peças",
-    "Concessionaria",
-    "Construção Arcozaco",
-    "Construção Mecdustrial",
-    "Construção Mectropoly",
-    "Fabrica 1",
-    "Fabrica 2",
-    "Ferro Velho",
-    "Mercadão",
-    "Posto Mecdustrial",
-    "Posto Mectropoly",
-    "Valley Drag Race"
+    CFrame.new(-3285.76001, 161.737457, 1614.28943, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-3522.64209, 149.053268, 323.652527, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-3184.74902, 149.128555, 80.0245209, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-9936.9082, 151.790451, 913.123474, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-26116.0547, 148.584518, -802.931519, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-3835.5061, 148.748459, 1224.54346, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-25659.7578, 148.813583, -590.995483, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-25659.7578, 148.813461, -1393.02051, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-3317.01904, 149.092453, -522.75354, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-3811.00903, 177.000458, 2048.18457, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-25595.5, 148.609451, -1044.8075, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-3416.36597, 149.47847, 18.0654888, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    CFrame.new(-4037.16089, 148.239456, -1003.13953, 0, 0, -1, 0, 1, 0, 1, 0, 0),
 }
 
-local function iniciarEntrega()
-    task.spawn(function()
-        while entregando do
-            local caixa = workspace.GrabStuff:FindFirstChild("TranspBox")
-            if not caixa or not caixa:IsDescendantOf(workspace) then
-                break -- parou de existir
-            end
-
-            -- Garantir PrimaryPart
-            if not caixa.PrimaryPart then
-                local base = caixa:FindFirstChild("Base") or caixa:FindFirstChildWhichIsA("BasePart")
-                if base then
-                    caixa.PrimaryPart = base
-                else
-                    warn("TranspBox sem PrimaryPart")
-                    break
+task.spawn(function()
+    while true do
+        if entregaAtiva then
+            for _, caixa in ipairs(workspace.GrabStuff:GetChildren()) do
+                if caixa:IsA("MeshPart") then
+                    for _, destinoCF in ipairs(destinos) do
+                        if not caixa or not caixa.Parent then break end
+                        caixa.CFrame = destinoCF
+                        task.wait(0.3)
+                    end
                 end
             end
-
-            for _, nome in ipairs(destinos) do
-                local destino = workspace.TransportJobWorkings.Destinations:FindFirstChild(nome)
-                if destino and destino:FindFirstChild("Details") then
-                    caixa:SetPrimaryPartCFrame(destino.Details.CFrame)
-                    task.wait(0.3)
-                end
-
-                if not caixa:IsDescendantOf(workspace) then
-                    break -- sumiu
-                end
-            end
-
-            task.wait(0.1)
         end
-    end)
-end
+        task.wait(1)
+    end
+end)
 
 Tabs.Main:AddToggle("EntregaToggle", {
     Title = "Entrega",
     Default = false,
     Callback = function(state)
-        entregando = state
-        if state then
-            iniciarEntrega()
-        end
+        entregaAtiva = state
     end
 })
-
 
 -- Toggle de entrega na Fluent UI
 
