@@ -174,9 +174,9 @@ Tabs.Main:AddToggle("EntregaToggle", {
 Tabs.Main:AddSlider("DelayEntrega", {
     Title = "Delay da Entrega",
     Description = "Ajusta a velocidade da entrega (menor = mais rápido)",
-    Default = 0.05,
-    Min = 0.01,
-    Max = 1,
+    Default = 2,
+    Min = 2,
+    Max = 10,
     Rounding = 2,
     Callback = function(value)
         entregaDelay = value
