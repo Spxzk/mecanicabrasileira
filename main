@@ -122,10 +122,10 @@ Tabs.Main:AddToggle("EntregaToggle", {
     Default = false,
     Callback = function(state)
         entregaAtiva = state
+        print("[Entrega] Estado:", state)
     end
 })
 
--- Loop que teleporta TODAS as caixas a cada 1 segundo para seus destinos até desaparecerem
 task.spawn(function()
     while true do
         if entregaAtiva then
@@ -133,8 +133,13 @@ task.spawn(function()
                 if caixa:IsA("MeshPart") and caixa:FindFirstChild("TranspBox") then
                     local transpBox = caixa.TranspBox
                     local destino = transpBox:FindFirstChild("Destination")
-                    if destino and destino.Value then
-                        caixa.CFrame = destino.Value.CFrame
+
+                    if destino and destino:IsA("ObjectValue") and destino.Value and destino.Value:IsA("BasePart") then
+                        local destPart = destino.Value
+                        caixa.CFrame = destPart.CFrame
+                        print("[Entrega] Caixa teleportada para:", destPart:GetFullName())
+                    else
+                        print("[Entrega] Caixa ignorada - destino inválido:", caixa.Name)
                     end
                 end
             end
