@@ -131,7 +131,6 @@ local destinos = {
     workspace.TransportJobWorkings.Destinations["Valley Drag Race"],
 }
 
--- Preparar uma lista só com os nomes para o Dropdown
 local nomesDestinos = {}
 for _, mdl in ipairs(destinos) do
     table.insert(nomesDestinos, mdl.Name)
@@ -151,14 +150,13 @@ Tabs.Main:AddDropdown("DestinoDrop", {
 
 Tabs.Main:AddButton({
     Title = "Teleportar TranspBoxes",
-    Description = "Teleporta todas as TranspBox para o DropArea do destino escolhido",
+    Description = "Teleporta todas as TranspBox para Detail > Spin do destino escolhido",
     Callback = function()
         if not destinoSelecionado then
             warn("[Entrega] Nenhum destino selecionado")
             return
         end
 
-        -- Encontra o modelo do destino selecionado na lista
         local destinoModel = nil
         for _, mdl in ipairs(destinos) do
             if mdl.Name == destinoSelecionado then
@@ -172,9 +170,16 @@ Tabs.Main:AddButton({
             return
         end
 
-        local dropArea = destinoModel:FindFirstChild("DropArea", true)
-        if not dropArea or not dropArea:IsA("BasePart") then
-            warn("[Entrega] DropArea inválida ou não encontrada em:", destinoSelecionado)
+        -- Pega Detail > Spin (que deve ser uma BasePart/HumanoidPart)
+        local Details = destinoModel:FindFirstChild("Details", true)
+        if not Details then
+            warn("[Entrega] Pasta 'Detail' não encontrada em:", destinoSelecionado)
+            return
+        end
+
+        local spin = Details:FindFirstChild("Spin")
+        if not spin or not spin:IsA("BasePart") then
+            warn("[Entrega] Peça 'Spin' inválida ou não encontrada dentro de Detail em:", destinoSelecionado)
             return
         end
 
@@ -187,12 +192,12 @@ Tabs.Main:AddButton({
         for _, obj in ipairs(grabStuff:GetChildren()) do
             if obj.Name == "TranspBox" and obj:IsA("BasePart") then
                 pcall(function()
-                    obj.CFrame = dropArea.CFrame
+                    obj.CFrame = spin.CFrame
                 end)
             end
         end
 
-        print("[Entrega] TranspBoxes teleportadas para:", destinoSelecionado)
+        print("[Entrega] TranspBoxes teleportadas para Detail > Spin em:", destinoSelecionado)
     end,
 })
 
