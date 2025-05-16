@@ -116,6 +116,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 local entregaAtiva = false
+local entregando = false
 
 Tabs.Main:AddToggle("EntregaToggle", {
     Title = "Entrega",
@@ -123,30 +124,33 @@ Tabs.Main:AddToggle("EntregaToggle", {
     Callback = function(state)
         entregaAtiva = state
         print("[Entrega] Estado:", state)
+
+        if entregaAtiva and not entregando then
+            entregando = true
+            task.spawn(function()
+                while entregaAtiva do
+                    local caixas = workspace:FindFirstChild("GrabStuff")
+                    if caixas then
+                        for _, caixa in ipairs(caixas:GetChildren()) do
+                            if caixa:IsA("MeshPart") and caixa:FindFirstChild("TranspBox") then
+                                local transpBox = caixa.TranspBox
+                                local destino = transpBox:FindFirstChild("Destination")
+
+                                if destino and destino:IsA("ObjectValue") and destino.Value and destino.Value:IsA("BasePart") then
+                                    caixa.CFrame = destino.Value.CFrame
+                                    print("[Entrega] Caixa teleportada:", caixa.Name)
+                                end
+                            end
+                        end
+                    end
+                    task.wait(1)
+                end
+                entregando = false
+            end)
+        end
     end
 })
 
-task.spawn(function()
-    while true do
-        if entregaAtiva then
-            for _, caixa in ipairs(workspace.GrabStuff:GetChildren()) do
-                if caixa:IsA("MeshPart") and caixa:FindFirstChild("TranspBox") then
-                    local transpBox = caixa.TranspBox
-                    local destino = transpBox:FindFirstChild("Destination")
-
-                    if destino and destino:IsA("ObjectValue") and destino.Value and destino.Value:IsA("BasePart") then
-                        local destPart = destino.Value
-                        caixa.CFrame = destPart.CFrame
-                        print("[Entrega] Caixa teleportada para:", destPart:GetFullName())
-                    else
-                        print("[Entrega] Caixa ignorada - destino inválido:", caixa.Name)
-                    end
-                end
-            end
-        end
-        task.wait(1)
-    end
-end)
 
 Tabs.Main:AddButton({
     Title = "Teleportar para Garagem",
